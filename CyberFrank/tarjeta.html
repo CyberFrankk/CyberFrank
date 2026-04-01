@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tu Tarjeta Especial 💝</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #06040a;
+      width: 100%; height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      font-family: sans-serif;
+      overflow: hidden;
+    }
+    #loading {
+      color: rgba(255,255,255,0.5);
+      font-size: 14px;
+      letter-spacing: 3px;
+      text-align: center;
+    }
+    #loading span {
+      display: block;
+      font-size: 40px;
+      margin-bottom: 20px;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+    /* El iframe ocupa todo */
+    #card-frame {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: none;
+    }
+    /* Barra de regreso */
+    #back-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      padding: 12px 20px;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(10px);
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 9999;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+    #back-bar a {
+      color: rgba(255,255,255,0.6);
+      text-decoration: none;
+      font-size: 12px;
+      letter-spacing: 2px;
+      font-family: monospace;
+      transition: color 0.3s;
+    }
+    #back-bar a:hover { color: #fff; }
+    #back-bar .brand {
+      font-size: 11px;
+      color: rgba(255,255,255,0.3);
+      letter-spacing: 2px;
+      font-family: monospace;
+    }
+    #error-msg {
+      display: none;
+      text-align: center;
+      color: rgba(255,100,100,0.8);
+    }
+    #error-msg h2 { font-size: 24px; margin-bottom: 12px; }
+    #error-msg p  { font-size: 14px; color: rgba(255,255,255,0.4); }
+    #error-msg a  { color: #22D3EE; text-decoration: none; display: inline-block; margin-top: 20px; font-size: 13px; letter-spacing: 2px; }
+  </style>
+</head>
+<body>
+
+  <div id="loading">
+    <span>💝</span>
+    CARGANDO TU TARJETA...
+  </div>
+
+  <div id="error-msg">
+    <h2>😕 Link inválido</h2>
+    <p>Este link no corresponde a ninguna tarjeta.</p>
+    <a href="index.html">← Volver al inicio</a>
+  </div>
+
+  <!-- El iframe cargará la plantilla -->
+  <iframe id="card-frame" allow="autoplay; encrypted-media"></iframe>
+
+  <!-- Barra inferior siempre visible -->
+  <div id="back-bar">
+    <a href="index.html#plantillas">← Crear mi propia tarjeta</a>
+    <span class="brand">CYBERFRANK.COM</span>
+  </div>
+
+  <script>
+    // ── REGISTRO DE PLANTILLAS ──
+    // Para agregar una nueva: { id: 'nombre', file: 'plantillas/archivo.html', name: 'Nombre visible' }
+    const PLANTILLAS = [
+      { id: 'roses',  file: 'plantillas/roses.html',  name: 'Roses'  },
+      { id: 'galaxy', file: 'plantillas/galaxy.html', name: 'Galaxy' },
+      { id: 'sakura', file: 'plantillas/sakura.html', name: 'Sakura' },
+      { id: 'ocean',  file: 'plantillas/ocean.html',  name: 'Ocean'  },
+      { id: 'aurora', file: 'plantillas/aurora.html', name: 'Aurora' },
+      { id: 'gold',   file: 'plantillas/gold.html',   name: 'Gold'   },
+    ];
+
+    // Leer parámetros del link
+    const params  = new URLSearchParams(window.location.search);
+    const temaId  = params.get('tema');
+    const nombre  = params.get('nombre')   || '';
+    const mensaje = params.get('mensaje')  || '';
+    const palabras= params.get('palabras') || '';
+    const cancion = params.get('cancion')  || '';
+
+    const plantilla = PLANTILLAS.find(p => p.id === temaId);
+
+    if (!plantilla || !nombre) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error-msg').style.display = 'block';
+    } else {
+      // Construir URL del iframe con parámetros
+      const frameUrl = `${plantilla.file}?nombre=${encodeURIComponent(nombre)}&mensaje=${encodeURIComponent(mensaje)}&palabras=${encodeURIComponent(palabras)}&cancion=${encodeURIComponent(cancion)}`;
+
+      const frame = document.getElementById('card-frame');
+      frame.src = frameUrl;
+      frame.onload = () => {
+        document.getElementById('loading').style.display = 'none';
+        frame.style.display = 'block';
+        document.getElementById('back-bar').style.display = 'flex';
+      };
+      frame.onerror = () => {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('error-msg').style.display = 'block';
+      };
+
+      // Timeout por si tarda demasiado
+      setTimeout(() => {
+        if (frame.style.display === 'none') {
+          frame.style.display = 'block';
+          document.getElementById('loading').style.display = 'none';
+          document.getElementById('back-bar').style.display = 'flex';
+        }
+      }, 5000);
+    }
+  </script>
+
+</body>
+</html>

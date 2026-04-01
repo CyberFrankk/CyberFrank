@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Roses 🌹</title>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:ital,wght@0,300;1,300&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --orange:#ff8c42;
+  --orange-light:#ffb380;
+  --red:#e8314a;
+  --bg:#06040a;
+  --white:#fff5f0;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);font-family:'Great Vibes',cursive;color:var(--white);user-select:none;}
+#galaxy-canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;touch-action:none;}
+#splash{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);transition:opacity 1.5s ease;cursor:pointer;}
+#splash.hidden{opacity:0;pointer-events:none}
+#splash-rose{width:180px;height:180px;animation:pulse-rose 2.8s ease-in-out infinite;filter:drop-shadow(0 0 35px #e8314a90);}
+@keyframes pulse-rose{0%,100%{transform:scale(1);filter:drop-shadow(0 0 30px #e8314a80)}50%{transform:scale(1.07);filter:drop-shadow(0 0 65px #ff4d6dcc)}}
+.tap-text{margin-top:28px;font-size:2rem;color:var(--orange-light);text-shadow:0 0 20px #ff8c4290;animation:blink 2.2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+#ui{position:fixed;inset:0;z-index:10;pointer-events:none;opacity:0;transition:opacity 1.6s ease 0.5s;}
+#ui.visible{opacity:1}
+.title{position:absolute;top:4%;left:0;right:0;text-align:center;padding:0 12px;font-size:clamp(2.4rem,9.5vw,4.8rem);line-height:1.1;color:var(--orange-light);text-shadow:0 0 15px var(--orange),0 0 45px #ff8c4275,0 0 90px #ff8c4240;animation:glow-title 3.5s ease-in-out infinite;}
+@keyframes glow-title{0%,100%{text-shadow:0 0 15px var(--orange),0 0 45px #ff8c4270}50%{text-shadow:0 0 28px #ffb380,0 0 80px #ff8c42aa,0 0 130px #ff8c4250}}
+.name{position:absolute;top:24%;left:50%;transform:translateX(-50%);font-family:'Cormorant Garamond',serif;font-style:italic;font-size:clamp(1.4rem,5.5vw,2.6rem);letter-spacing:0.14em;color:#fff;text-shadow:0 0 18px #ff8c4270;white-space:nowrap;}
+.message{position:absolute;bottom:18%;left:50%;transform:translateX(-50%);font-size:clamp(1.8rem,7vw,3.2rem);color:var(--orange-light);text-shadow:0 0 22px #ff8c4290;white-space:nowrap;animation:float-msg 4.5s ease-in-out infinite;}
+@keyframes float-msg{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-10px)}}
+.hint{position:absolute;bottom:8%;left:50%;transform:translateX(-50%);font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.85rem;color:rgba(255,179,128,.45);letter-spacing:.12em;white-space:nowrap;animation:blink 3s ease-in-out infinite;}
+.rf{position:fixed;pointer-events:none;z-index:12;animation:rf-drift linear infinite;}
+@keyframes rf-drift{0%{opacity:0;transform:translateY(0) scale(var(--sc)) rotate(0deg)}10%{opacity:.9}90%{opacity:.9}100%{opacity:0;transform:translateY(var(--dy)) scale(var(--sc)) rotate(var(--rr))}}
+.spark{position:fixed;border-radius:50%;pointer-events:none;z-index:9;animation:spark-up linear infinite;}
+@keyframes spark-up{0%{opacity:0;transform:translateY(0) scale(0)}15%{opacity:1;transform:translateY(-18px) scale(1)}100%{opacity:0;transform:translateY(-80px) scale(.2)}}
+#music-btn{position:fixed;bottom:22px;right:18px;z-index:200;background:rgba(255,140,66,.15);border:1px solid rgba(255,140,66,.5);border-radius:50%;width:52px;height:52px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.5rem;backdrop-filter:blur(8px);transition:background .3s,transform .2s;pointer-events:all;}
+#music-btn:hover{background:rgba(255,140,66,.28);transform:scale(1.1)}
+</style>
+</head>
+<body>
+
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="rosa" viewBox="0 0 100 120">
+    <path d="M50 120 Q45 95 50 75" stroke="#2d6a2d" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <path d="M50 100 Q35 90 30 78" stroke="#2d6a2d" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <ellipse cx="32" cy="82" rx="10" ry="5" fill="#3a8c3a" transform="rotate(-30 32 82)"/>
+    <ellipse cx="50" cy="48" rx="18" ry="14" fill="#c0162e" opacity=".9"/>
+    <ellipse cx="35" cy="52" rx="14" ry="10" fill="#c0162e" opacity=".85" transform="rotate(30 35 52)"/>
+    <ellipse cx="65" cy="52" rx="14" ry="10" fill="#c0162e" opacity=".85" transform="rotate(-30 65 52)"/>
+    <ellipse cx="42" cy="35" rx="13" ry="9" fill="#d41e35" opacity=".9" transform="rotate(-15 42 35)"/>
+    <ellipse cx="58" cy="35" rx="13" ry="9" fill="#d41e35" opacity=".9" transform="rotate(15 58 35)"/>
+    <ellipse cx="50" cy="42" rx="13" ry="10" fill="#e8314a" opacity=".95"/>
+    <ellipse cx="40" cy="42" rx="10" ry="8" fill="#e8314a" opacity=".9" transform="rotate(20 40 42)"/>
+    <ellipse cx="60" cy="42" rx="10" ry="8" fill="#e8314a" opacity=".9" transform="rotate(-20 60 42)"/>
+    <circle cx="50" cy="38" r="9" fill="#ff4d6d"/>
+    <circle cx="50" cy="36" r="6" fill="#ff6b85"/>
+    <circle cx="50" cy="35" r="3.5" fill="#ffaabb"/>
+  </symbol>
+</svg>
+
+<div id="splash">
+  <svg id="splash-rose" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg"><use href="#rosa"/></svg>
+  <div class="tap-text">Toca para abrir 🌹</div>
+</div>
+
+<canvas id="galaxy-canvas"></canvas>
+
+<div id="ui">
+  <div class="title" id="ui-title">Para tí</div>
+  <div class="name" id="ui-name"></div>
+  <div class="message" id="ui-message"></div>
+  <div class="hint">✦ arrastra para explorar · pellizca para zoom ✦</div>
+</div>
+
+<div id="music-btn">🎵</div>
+<div id="yt-player" style="display:none;position:absolute;width:1px;height:1px"></div>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+// ── LEER PARÁMETROS ──
+const params   = new URLSearchParams(window.location.search);
+const NOMBRE   = params.get('nombre')   || 'Princesa';
+const MENSAJE  = params.get('mensaje')  || 'Para tí ✨';
+const PALABRAS = params.get('palabras') || '';
+const CANCION  = params.get('cancion')  || 'nDB3xPMz8pM';
+
+// Textos flotantes: usa palabras del usuario si las hay, si no usa defaults
+const defaultTextos = [
+  { t:"Princesa", c:"#ffb380", s:1.0 },
+  { t:"Reina",    c:"#ff8c42", s:0.9 },
+  { t:"Venus",    c:"#ff6b7a", s:0.85 },
+  { t:"Amor",     c:"#ffb380", s:0.95 },
+  { t:"💕",       c:"#ff6b7a", s:0.8 },
+  { t:"Siempre",  c:"#ffcc99", s:0.75 },
+  { t:"Eres Arte",c:"#ff8c42", s:0.9 },
+  { t:"∞",        c:"#ffffff", s:1.0 },
+];
+
+function buildTextos() {
+  if (!PALABRAS.trim()) return defaultTextos;
+  const cols = ['#ffb380','#ff8c42','#ff6b7a','#ffcc99','#ffffff','#fda4af'];
+  return PALABRAS.split(',').map((p, i) => ({
+    t: p.trim(),
+    c: cols[i % cols.length],
+    s: 0.7 + Math.random() * 0.4
+  }));
+}
+const TEXTOS = buildTextos();
+
+// Poblar UI
+document.getElementById('ui-name').textContent    = NOMBRE;
+document.getElementById('ui-message').textContent = MENSAJE;
+
+// Extraer video ID de YouTube
+function extractYTId(input) {
+  if (!input) return null;
+  const m = input.match(/(?:v=|\/embed\/|\/shorts\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if (m) return m[1];
+  if (/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
+  return null;
+}
+const ytId = extractYTId(CANCION) || 'nDB3xPMz8pM';
+
+// ── THREE.JS ──
+const canvas   = document.getElementById('galaxy-canvas');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.setClearColor(0x06040a, 1);
+const scene  = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 1000);
+camera.position.set(0, 0, 5);
+
+window.addEventListener('resize', ()=>{
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+let isDragging=false, prevX=0, prevY=0;
+let rotX=0, rotY=0, targetRotX=0, targetRotY=0;
+let zoom=5, targetZoom=5;
+canvas.addEventListener('mousedown', e=>{ isDragging=true; prevX=e.clientX; prevY=e.clientY; });
+window.addEventListener('mouseup', ()=>{ isDragging=false; });
+window.addEventListener('mousemove', e=>{
+  if(!isDragging) return;
+  targetRotY+=(e.clientX-prevX)*0.005; targetRotX+=(e.clientY-prevY)*0.005;
+  prevX=e.clientX; prevY=e.clientY;
+});
+canvas.addEventListener('wheel', e=>{ targetZoom=Math.max(1.5,Math.min(12,targetZoom+e.deltaY*0.01)); },{passive:true});
+let lastPinch=null;
+canvas.addEventListener('touchstart', e=>{
+  if(e.touches.length===1){ isDragging=true; prevX=e.touches[0].clientX; prevY=e.touches[0].clientY; }
+  else if(e.touches.length===2){ lastPinch=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY); }
+},{passive:true});
+canvas.addEventListener('touchend', ()=>{ isDragging=false; lastPinch=null; });
+canvas.addEventListener('touchmove', e=>{
+  if(e.touches.length===1 && isDragging){
+    targetRotY+=(e.touches[0].clientX-prevX)*0.005; targetRotX+=(e.touches[0].clientY-prevY)*0.005;
+    prevX=e.touches[0].clientX; prevY=e.touches[0].clientY;
+  } else if(e.touches.length===2 && lastPinch!=null){
+    const d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+    targetZoom=Math.max(1.5,Math.min(12,targetZoom-(d-lastPinch)*0.02)); lastPinch=d;
+  }
+},{passive:true});
+
+// Galaxia
+const gCount=18000;
+const gPos=new Float32Array(gCount*3), gCol=new Float32Array(gCount*3);
+for(let i=0;i<gCount;i++){
+  const r=Math.pow(Math.random(),0.6)*6;
+  const theta=Math.random()*Math.PI*2;
+  const arm=Math.floor(Math.random()*3)*(Math.PI*2/3);
+  const twist=r*0.7;
+  const t2=theta+arm+twist;
+  const spread=0.18+r*0.06;
+  gPos[i*3]  =r*Math.cos(t2)+(Math.random()-.5)*spread;
+  gPos[i*3+1]=(Math.random()-.5)*0.25;
+  gPos[i*3+2]=r*Math.sin(t2)+(Math.random()-.5)*spread;
+  const warm=Math.random();
+  gCol[i*3]  =0.7+warm*0.3; gCol[i*3+1]=0.2+warm*0.3; gCol[i*3+2]=0.15+Math.random()*0.2;
+}
+const gGeo=new THREE.BufferGeometry();
+gGeo.setAttribute('position',new THREE.BufferAttribute(gPos,3));
+gGeo.setAttribute('color',   new THREE.BufferAttribute(gCol,3));
+const gMat=new THREE.PointsMaterial({size:0.025,vertexColors:true,transparent:true,opacity:0.85,sizeAttenuation:true,blending:THREE.AdditiveBlending,depthWrite:false});
+const galaxyPoints=new THREE.Points(gGeo,gMat);
+scene.add(galaxyPoints);
+
+// Planeta
+let planetObj=null;
+function buildPlanet(){
+  const group=new THREE.Group();
+  const N=3000;
+  const rPos=new Float32Array(N*3), rCol=new Float32Array(N*3), rSiz=new Float32Array(N);
+  for(let i=0;i<N;i++){
+    const angle=Math.random()*Math.PI*2;
+    const rad=0.55+Math.random()*0.55;
+    const tilt=(Math.random()-.5)*0.18;
+    rPos[i*3]=rad*Math.cos(angle); rPos[i*3+1]=tilt; rPos[i*3+2]=rad*Math.sin(angle);
+    const density=Math.exp(-Math.pow((rad-0.7)/0.25,2));
+    rCol[i*3]=0.95+Math.random()*0.05; rCol[i*3+1]=0.35+Math.random()*0.25; rCol[i*3+2]=0.1+Math.random()*0.15;
+    rSiz[i]=(0.008+Math.random()*0.022)*(0.5+density*0.8);
+  }
+  const rGeo=new THREE.BufferGeometry();
+  rGeo.setAttribute('position',new THREE.BufferAttribute(rPos,3));
+  rGeo.setAttribute('color',   new THREE.BufferAttribute(rCol,3));
+  rGeo.setAttribute('size',    new THREE.BufferAttribute(rSiz,1));
+  const rMat=new THREE.ShaderMaterial({
+    uniforms:{time:{value:0},opacity:{value:1.0}},
+    vertexShader:`attribute float size;varying vec3 vColor;varying float vAlpha;uniform float time;
+    void main(){vColor=color;float id=float(gl_VertexID);vAlpha=0.55+0.35*sin(time*1.2+id*0.031);
+    vec4 mvPos=modelViewMatrix*vec4(position,1.0);gl_PointSize=size*(300.0/-mvPos.z);gl_Position=projectionMatrix*mvPos;}`,
+    fragmentShader:`varying vec3 vColor;varying float vAlpha;
+    void main(){vec2 uv=gl_PointCoord-vec2(0.5);float d=length(uv);if(d>0.5)discard;
+    float alpha=vAlpha*exp(-d*d*8.0)*2.0;alpha=clamp(alpha,0.0,1.0);gl_FragColor=vec4(vColor,alpha);}`,
+    transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,vertexColors:true,
+  });
+  const ringPoints=new THREE.Points(rGeo,rMat);
+  group.add(ringPoints);
+  const light=new THREE.PointLight(0xff8844,2.2,5);
+  light.position.set(1.5,1,1); group.add(light);
+  scene.add(new THREE.AmbientLight(0x331122,0.4));
+  scene.add(group);
+  return {group,ringPoints,rMat};
+}
+
+// Textos 3D
+const textMeshes=[];
+function makeTextSprite(text,color,scale){
+  const c2=document.createElement('canvas');
+  const ctx=c2.getContext('2d');
+  const fs=Math.max(28,Math.min(48,Math.round(480/text.length)));
+  ctx.font=`italic ${fs}px 'Great Vibes',cursive`;
+  const w=ctx.measureText(text).width+40;
+  c2.width=Math.ceil(w); c2.height=fs*2;
+  ctx.font=`italic ${fs}px 'Great Vibes',cursive`;
+  ctx.shadowColor=color; ctx.shadowBlur=20; ctx.fillStyle=color;
+  ctx.fillText(text,20,fs*1.3);
+  const tex=new THREE.CanvasTexture(c2);
+  const mat=new THREE.MeshBasicMaterial({map:tex,transparent:true,depthWrite:false,side:THREE.DoubleSide});
+  const aspect=c2.width/c2.height;
+  return new THREE.Mesh(new THREE.PlaneGeometry(aspect*scale,scale),mat);
+}
+function placeTexts(){
+  TEXTOS.forEach(item=>{
+    const mesh=makeTextSprite(item.t,item.c,item.s);
+    const r=2.5+Math.random()*2.5;
+    const th=Math.random()*Math.PI*2;
+    const ph=Math.acos(2*Math.random()-1);
+    mesh.position.set(r*Math.sin(ph)*Math.cos(th),r*Math.sin(ph)*Math.sin(th),r*Math.cos(ph));
+    mesh.userData={rotSpeed:(Math.random()-.5)*.003,floatSpeed:.3+Math.random()*.5,floatAmp:.06+Math.random()*.1,baseY:mesh.position.y,phase:Math.random()*Math.PI*2};
+    scene.add(mesh); textMeshes.push(mesh);
+  });
+}
+
+// Animación
+let animActive=false;
+const clock=new THREE.Clock();
+function animate(){
+  if(!animActive) return;
+  requestAnimationFrame(animate);
+  const t=clock.getElapsedTime();
+  rotX+=(targetRotX-rotX)*.08; rotY+=(targetRotY-rotY)*.08; zoom+=(targetZoom-zoom)*.08;
+  camera.position.x=zoom*Math.sin(rotY)*Math.cos(rotX);
+  camera.position.y=zoom*Math.sin(rotX);
+  camera.position.z=zoom*Math.cos(rotY)*Math.cos(rotX);
+  camera.lookAt(0,0,0);
+  galaxyPoints.rotation.y+=.0007;
+  textMeshes.forEach(m=>{
+    m.position.y=m.userData.baseY+Math.sin(t*m.userData.floatSpeed+m.userData.phase)*m.userData.floatAmp;
+    m.lookAt(camera.position);
+  });
+  if(planetObj){ planetObj.rMat.uniforms.time.value=t; planetObj.group.rotation.y=t*0.12; }
+  renderer.render(scene,camera);
+}
+
+// YouTube
+let player,musicOn=false;
+const musicBtn=document.getElementById('music-btn');
+function onYouTubeIframeAPIReady(){
+  player=new YT.Player('yt-player',{
+    videoId: ytId,
+    playerVars:{autoplay:0,loop:1,playlist:ytId,controls:0,fs:0},
+    events:{}
+  });
+}
+musicBtn.addEventListener('click',()=>{
+  if(!player||typeof player.playVideo!=='function') return;
+  if(musicOn){ player.pauseVideo(); musicBtn.textContent='🎵'; }
+  else        { player.playVideo();  musicBtn.textContent='⏸️'; }
+  musicOn=!musicOn;
+});
+
+// Rosas flotantes
+const ns='http://www.w3.org/2000/svg';
+function makeSVGRose(size){
+  const svg=document.createElementNS(ns,'svg');
+  svg.setAttribute('viewBox','0 0 100 120');
+  svg.setAttribute('width',size); svg.setAttribute('height',size*1.2);
+  const use=document.createElementNS(ns,'use');
+  use.setAttribute('href','#rosa'); svg.appendChild(use);
+  return svg;
+}
+function spawnRose(){
+  const el=document.createElement('div');
+  el.className='rf';
+  const size=28+Math.random()*38;
+  el.appendChild(makeSVGRose(size));
+  el.style.filter='drop-shadow(0 0 8px #e8314a80)';
+  const dur=12+Math.random()*14;
+  el.style.left=(Math.random()*90)+'%'; el.style.top=(40+Math.random()*52)+'%';
+  el.style.setProperty('--sc',1); el.style.setProperty('--dy',-(80+Math.random()*190)+'px');
+  el.style.setProperty('--rr',(Math.random()-.5)*75+'deg');
+  el.style.animationDuration=dur+'s';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),dur*1000);
+}
+function spawnSpark(){
+  const el=document.createElement('div'); el.className='spark';
+  const sz=2+Math.random()*3;
+  const hue=Math.random()<.5?'#ffb380':'#ff6b7a';
+  el.style.cssText=`width:${sz}px;height:${sz}px;background:${hue};box-shadow:0 0 6px ${hue};left:${8+Math.random()*84}%;top:${25+Math.random()*60}%;animation-duration:${3+Math.random()*4}s;animation-delay:${Math.random()*1.5}s`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),7000);
+}
+function spawnLoop(){
+  for(let i=0;i<5;i++) setTimeout(spawnRose,i*450);
+  setInterval(spawnRose,2400); setInterval(spawnSpark,600);
+}
+
+// Splash
+const splash=document.getElementById('splash');
+const ui=document.getElementById('ui');
+splash.addEventListener('click',()=>{
+  splash.classList.add('hidden'); ui.classList.add('visible');
+  animActive=true; planetObj=buildPlanet(); placeTexts(); animate(); spawnLoop();
+  const tryPlay=setInterval(()=>{
+    if(player&&typeof player.playVideo==='function'){ player.playVideo(); musicBtn.textContent='⏸️'; musicOn=true; clearInterval(tryPlay); }
+  },300);
+  setTimeout(()=>clearInterval(tryPlay),8000);
+});
+</script>
+</body>
+</html>

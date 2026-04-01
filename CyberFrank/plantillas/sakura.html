@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sakura 🌸</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;700&family=Raleway:wght@300;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#1a0510;user-select:none;}
+canvas{position:fixed;inset:0;z-index:0;}
+#splash{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#1a0510;transition:opacity 1.5s ease;cursor:pointer;}
+#splash.hidden{opacity:0;pointer-events:none}
+.splash-icon{font-size:80px;animation:pulse 2.8s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1) rotate(-5deg)}50%{transform:scale(1.1) rotate(5deg)}}
+.tap-text{margin-top:24px;font-family:'Raleway',sans-serif;font-size:13px;letter-spacing:5px;color:#fda4af;opacity:0.7;animation:blink 2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:0.7}50%{opacity:0.2}}
+#ui{position:fixed;inset:0;z-index:10;pointer-events:none;opacity:0;transition:opacity 2s ease 0.5s;}
+#ui.visible{opacity:1}
+.title{position:absolute;top:5%;left:0;right:0;text-align:center;font-family:'Noto Serif JP',serif;font-size:clamp(2rem,7vw,4rem);font-weight:700;color:#ffb7c5;text-shadow:0 0 20px #fb7185,0 0 50px #e11d4880;animation:glow 4s ease-in-out infinite;}
+@keyframes glow{0%,100%{text-shadow:0 0 20px #fb7185,0 0 50px #e11d4860}50%{text-shadow:0 0 35px #fda4af,0 0 90px #fb718580}}
+.name{position:absolute;top:22%;left:50%;transform:translateX(-50%);font-family:'Raleway',sans-serif;font-size:clamp(1.4rem,5vw,2.8rem);font-weight:600;letter-spacing:6px;color:#fff;text-shadow:0 0 20px #fda4af80;white-space:nowrap;}
+.message{position:absolute;bottom:20%;left:50%;transform:translateX(-50%);font-family:'Noto Serif JP',serif;font-size:clamp(1.2rem,3.5vw,2rem);font-weight:300;color:#fecdd3;text-shadow:0 0 15px #fb718560;white-space:nowrap;animation:float 5s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-10px)}}
+.hint{position:absolute;bottom:9%;left:50%;transform:translateX(-50%);font-family:'Raleway',sans-serif;font-size:11px;letter-spacing:3px;color:rgba(253,164,175,0.3);white-space:nowrap;animation:blink 3s ease-in-out infinite;}
+.petal{position:fixed;pointer-events:none;z-index:12;font-size:20px;animation:petalFall linear infinite;}
+@keyframes petalFall{0%{transform:translateY(-60px) rotate(0deg) translateX(0);opacity:0}10%{opacity:0.9}90%{opacity:0.7}100%{transform:translateY(110vh) rotate(720deg) translateX(var(--dx));opacity:0}}
+.float-word{position:fixed;pointer-events:none;z-index:8;font-family:'Noto Serif JP',serif;color:rgba(253,164,175,0.2);animation:wordFloat linear infinite;white-space:nowrap;}
+@keyframes wordFloat{from{transform:translateY(100vh) rotate(var(--rot));opacity:0}10%{opacity:1}90%{opacity:0.3}to{transform:translateY(-100px) rotate(var(--rot));opacity:0}}
+#music-btn{position:fixed;bottom:22px;right:18px;z-index:200;background:rgba(251,113,133,.12);border:1px solid rgba(253,164,175,.4);border-radius:50%;width:52px;height:52px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.5rem;backdrop-filter:blur(8px);transition:all .3s;pointer-events:all;}
+#music-btn:hover{background:rgba(251,113,133,.25);transform:scale(1.1)}
+</style>
+</head>
+<body>
+<div id="splash"><div class="splash-icon">🌸</div><div class="tap-text">TOCA PARA ABRIR</div></div>
+<canvas id="c"></canvas>
+<div id="ui">
+  <div class="title">Para tí ✿</div>
+  <div class="name" id="ui-name"></div>
+  <div class="message" id="ui-message"></div>
+  <div class="hint">✦ pétalos en el aire ✦</div>
+</div>
+<div id="music-btn">🎵</div>
+<div id="yt-player" style="display:none;position:absolute;width:1px;height:1px"></div>
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+const params=new URLSearchParams(window.location.search);
+const NOMBRE=params.get('nombre')||'Mi amor';
+const MENSAJE=params.get('mensaje')||'Eres mi flor favorita 🌸';
+const PALABRAS=params.get('palabras')||'';
+const CANCION=params.get('cancion')||'';
+document.getElementById('ui-name').textContent=NOMBRE;
+document.getElementById('ui-message').textContent=MENSAJE;
+function extractYTId(s){if(!s)return null;const m=s.match(/(?:v=|\/embed\/|\/shorts\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);if(m)return m[1];if(/^[a-zA-Z0-9_-]{11}$/.test(s))return s;return null;}
+const ytId=extractYTId(CANCION);
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+let W,H,animActive=false,t=0;
+function resize(){W=canvas.width=innerWidth;H=canvas.height=innerHeight;}
+resize();window.addEventListener('resize',resize);
+function draw(){if(!animActive)return;requestAnimationFrame(draw);t+=0.016;
+ctx.fillStyle='rgba(26,5,16,0.12)';ctx.fillRect(0,0,W,H);
+// fondo pétalo suave
+const g=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,W*0.7);
+g.addColorStop(0,'rgba(225,29,72,0.04)');g.addColorStop(1,'transparent');
+ctx.fillStyle=g;ctx.fillRect(0,0,W,H);}
+const defaultWords=['🌸','Amor','Siempre','Flor','Bello','Contigo','Infinito','Pétalo'];
+function spawnWords(){
+  const words=PALABRAS.trim()?PALABRAS.split(',').map(w=>w.trim()).filter(Boolean):defaultWords;
+  for(let i=0;i<22;i++){
+    const el=document.createElement('div');el.className='float-word';
+    el.textContent=words[i%words.length];
+    const left=Math.random()*92,size=12+Math.random()*18,dur=9+Math.random()*14,rot=(Math.random()-.5)*20+'deg',delay=Math.random()*-20;
+    el.style.cssText=`left:${left}%;font-size:${size}px;--rot:${rot};animation-duration:${dur}s;animation-delay:${delay}s;bottom:-50px;`;
+    document.body.appendChild(el);}
+}
+function spawnPetal(){
+  const el=document.createElement('div');el.className='petal';
+  el.textContent=['🌸','🌺','🏵️'][Math.floor(Math.random()*3)];
+  el.style.left=Math.random()*100+'%';
+  el.style.setProperty('--dx',(Math.random()-.5)*150+'px');
+  el.style.animationDuration=(8+Math.random()*10)+'s';
+  el.style.animationDelay=Math.random()*-15+'s';
+  el.style.fontSize=(14+Math.random()*16)+'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),20000);}
+let player,musicOn=false;
+const mb=document.getElementById('music-btn');
+function onYouTubeIframeAPIReady(){if(!ytId)return;player=new YT.Player('yt-player',{videoId:ytId,playerVars:{autoplay:0,loop:1,playlist:ytId,controls:0,fs:0},events:{}});}
+mb.addEventListener('click',()=>{if(!player||typeof player.playVideo!=='function')return;if(musicOn){player.pauseVideo();mb.textContent='🎵';}else{player.playVideo();mb.textContent='⏸️';}musicOn=!musicOn;});
+const splash=document.getElementById('splash'),ui=document.getElementById('ui');
+splash.addEventListener('click',()=>{
+  splash.classList.add('hidden');ui.classList.add('visible');animActive=true;draw();spawnWords();
+  for(let i=0;i<8;i++)setTimeout(spawnPetal,i*300);setInterval(spawnPetal,1800);
+  if(ytId){const tp=setInterval(()=>{if(player&&typeof player.playVideo==='function'){player.playVideo();mb.textContent='⏸️';musicOn=true;clearInterval(tp);}},300);setTimeout(()=>clearInterval(tp),8000);}
+});
+</script>
+</body>
+</html>

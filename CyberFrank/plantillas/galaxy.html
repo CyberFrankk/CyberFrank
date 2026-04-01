@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Galaxy 🌌</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@300;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#04020e;user-select:none;}
+canvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;}
+#splash{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#04020e;transition:opacity 1.5s ease;cursor:pointer;}
+#splash.hidden{opacity:0;pointer-events:none}
+.splash-icon{font-size:80px;animation:pulse 2.5s ease-in-out infinite;filter:drop-shadow(0 0 30px #a78bfa);}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.tap-text{margin-top:24px;font-family:'Orbitron',monospace;font-size:14px;letter-spacing:4px;color:#a78bfa;opacity:0.8;animation:blink 2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:0.8}50%{opacity:0.2}}
+#ui{position:fixed;inset:0;z-index:10;pointer-events:none;opacity:0;transition:opacity 2s ease 0.5s;}
+#ui.visible{opacity:1}
+.title{position:absolute;top:5%;left:0;right:0;text-align:center;font-family:'Orbitron',monospace;font-size:clamp(1.6rem,6vw,3.5rem);font-weight:900;letter-spacing:6px;color:#c4b5fd;text-shadow:0 0 20px #7c3aed,0 0 60px #4c1d95;animation:glow 4s ease-in-out infinite;}
+@keyframes glow{0%,100%{text-shadow:0 0 20px #7c3aed,0 0 60px #4c1d95}50%{text-shadow:0 0 40px #a78bfa,0 0 100px #6d28d9,0 0 150px #4c1d9560}}
+.name{position:absolute;top:22%;left:50%;transform:translateX(-50%);font-family:'Rajdhani',sans-serif;font-size:clamp(1.6rem,5vw,3rem);font-weight:600;letter-spacing:8px;color:#fff;text-shadow:0 0 20px #a78bfa80;white-space:nowrap;}
+.message{position:absolute;bottom:20%;left:50%;transform:translateX(-50%);font-family:'Rajdhani',sans-serif;font-size:clamp(1.2rem,3.5vw,2rem);font-weight:300;letter-spacing:4px;color:#c4b5fd;text-shadow:0 0 15px #7c3aed80;white-space:nowrap;animation:float 5s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-12px)}}
+.hint{position:absolute;bottom:9%;left:50%;transform:translateX(-50%);font-family:'Rajdhani',sans-serif;font-size:12px;letter-spacing:3px;color:rgba(196,181,253,0.3);white-space:nowrap;animation:blink 3s ease-in-out infinite;}
+.float-word{position:fixed;pointer-events:none;z-index:8;font-family:'Rajdhani',sans-serif;color:rgba(196,181,253,0.2);animation:wordFloat linear infinite;white-space:nowrap;}
+@keyframes wordFloat{from{transform:translateY(100vh) rotate(var(--rot));opacity:0}10%{opacity:1}90%{opacity:0.3}to{transform:translateY(-100px) rotate(var(--rot));opacity:0}}
+.star-particle{position:fixed;border-radius:50%;pointer-events:none;z-index:7;animation:starFly linear infinite;}
+@keyframes starFly{0%{opacity:0;transform:translateY(0) scale(0)}20%{opacity:1;transform:scale(1)}100%{opacity:0;transform:translateY(-120px) scale(0.3)}}
+#music-btn{position:fixed;bottom:22px;right:18px;z-index:200;background:rgba(124,58,237,.15);border:1px solid rgba(167,139,250,.4);border-radius:50%;width:52px;height:52px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.5rem;backdrop-filter:blur(8px);transition:background .3s,transform .2s;pointer-events:all;}
+#music-btn:hover{background:rgba(124,58,237,.3);transform:scale(1.1)}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="splash-icon">🌌</div>
+  <div class="tap-text">TOCA PARA ABRIR</div>
+</div>
+
+<canvas id="c"></canvas>
+
+<div id="ui">
+  <div class="title">PARA TÍ</div>
+  <div class="name" id="ui-name"></div>
+  <div class="message" id="ui-message"></div>
+  <div class="hint">✦ arrastra · pellizca para zoom ✦</div>
+</div>
+
+<div id="music-btn">🎵</div>
+<div id="yt-player" style="display:none;position:absolute;width:1px;height:1px"></div>
+<script src="https://www.youtube.com/iframe_api"></script>
+
+<script>
+const params   = new URLSearchParams(window.location.search);
+const NOMBRE   = params.get('nombre')   || 'Mi amor';
+const MENSAJE  = params.get('mensaje')  || 'Eres mi universo ✨';
+const PALABRAS = params.get('palabras') || '';
+const CANCION  = params.get('cancion')  || '';
+
+document.getElementById('ui-name').textContent    = NOMBRE;
+document.getElementById('ui-message').textContent = MENSAJE;
+
+function extractYTId(input){
+  if(!input) return null;
+  const m=input.match(/(?:v=|\/embed\/|\/shorts\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if(m) return m[1];
+  if(/^[a-zA-Z0-9_-]{11}$/.test(input)) return input;
+  return null;
+}
+const ytId = extractYTId(CANCION);
+
+// Canvas estrellas
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H, stars = [], nebulas = [];
+
+function resize(){
+  W = canvas.width  = innerWidth;
+  H = canvas.height = innerHeight;
+}
+resize();
+window.addEventListener('resize', () => { resize(); initStars(); });
+
+function initStars(){
+  stars = [];
+  for(let i = 0; i < 300; i++){
+    stars.push({
+      x: Math.random()*W, y: Math.random()*H,
+      r: Math.random()*1.5 + 0.2,
+      a: Math.random(),
+      speed: 0.002 + Math.random()*0.008,
+      phase: Math.random()*Math.PI*2,
+    });
+  }
+  nebulas = [];
+  const cols = ['rgba(124,58,237,0.06)','rgba(167,139,250,0.04)','rgba(76,29,149,0.08)','rgba(196,181,253,0.03)'];
+  for(let i = 0; i < 6; i++){
+    nebulas.push({
+      x: Math.random()*W, y: Math.random()*H,
+      rx: 100+Math.random()*200, ry: 80+Math.random()*150,
+      col: cols[Math.floor(Math.random()*cols.length)],
+    });
+  }
+}
+initStars();
+
+let t2 = 0;
+let animActive = false;
+function drawFrame(){
+  if(!animActive) return;
+  requestAnimationFrame(drawFrame);
+  t2 += 0.016;
+  ctx.fillStyle = 'rgba(4,2,14,0.15)';
+  ctx.fillRect(0,0,W,H);
+
+  // Nebulas
+  nebulas.forEach(n => {
+    const g = ctx.createRadialGradient(n.x,n.y,0,n.x,n.y,Math.max(n.rx,n.ry));
+    g.addColorStop(0, n.col); g.addColorStop(1, 'transparent');
+    ctx.save(); ctx.scale(1, n.ry/n.rx);
+    ctx.beginPath(); ctx.arc(n.x, n.y*n.rx/n.ry, n.rx, 0, Math.PI*2);
+    ctx.fillStyle = g; ctx.fill(); ctx.restore();
+  });
+
+  // Estrellas
+  stars.forEach(s => {
+    s.a = 0.3 + 0.7*Math.abs(Math.sin(t2*s.speed*30 + s.phase));
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(220,210,255,${s.a})`;
+    ctx.shadowColor = '#a78bfa';
+    ctx.shadowBlur = s.r * 4;
+    ctx.fill();
+  });
+  ctx.shadowBlur = 0;
+}
+
+// Palabras flotantes
+const defaultWords = ['∞','💜','Siempre','Cosmos','Universo','Estrellas','Contigo','Para ti'];
+function spawnWords(){
+  const words = PALABRAS.trim()
+    ? PALABRAS.split(',').map(w=>w.trim()).filter(Boolean)
+    : defaultWords;
+  const sizes = [14,18,22,26,12];
+  for(let i=0;i<20;i++){
+    const el = document.createElement('div');
+    el.className = 'float-word';
+    el.textContent = words[i % words.length];
+    const left = Math.random()*92;
+    const size = sizes[Math.floor(Math.random()*sizes.length)];
+    const dur  = 10+Math.random()*16;
+    const rot  = (Math.random()-.5)*20+'deg';
+    const delay= Math.random()*-20;
+    el.style.cssText=`left:${left}%;font-size:${size}px;--rot:${rot};animation-duration:${dur}s;animation-delay:${delay}s;bottom:-50px;`;
+    document.body.appendChild(el);
+  }
+}
+
+// Partículas estrella
+function spawnStarParticle(){
+  const el = document.createElement('div');
+  el.className = 'star-particle';
+  const sz = 2+Math.random()*4;
+  const cols = ['#a78bfa','#c4b5fd','#7c3aed','#e0d7ff'];
+  const col = cols[Math.floor(Math.random()*cols.length)];
+  el.style.cssText=`width:${sz}px;height:${sz}px;background:${col};box-shadow:0 0 ${sz*3}px ${col};left:${10+Math.random()*80}%;top:${20+Math.random()*60}%;animation-duration:${4+Math.random()*6}s;animation-delay:${Math.random()*2}s`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 8000);
+}
+
+// YouTube
+let player, musicOn = false;
+const musicBtn = document.getElementById('music-btn');
+function onYouTubeIframeAPIReady(){
+  if(!ytId) return;
+  player = new YT.Player('yt-player',{
+    videoId: ytId,
+    playerVars:{autoplay:0,loop:1,playlist:ytId,controls:0,fs:0},
+    events:{}
+  });
+}
+musicBtn.addEventListener('click',()=>{
+  if(!player||typeof player.playVideo!=='function') return;
+  if(musicOn){ player.pauseVideo(); musicBtn.textContent='🎵'; }
+  else        { player.playVideo();  musicBtn.textContent='⏸️'; }
+  musicOn=!musicOn;
+});
+
+// Splash
+const splash = document.getElementById('splash');
+const ui = document.getElementById('ui');
+splash.addEventListener('click',()=>{
+  splash.classList.add('hidden');
+  ui.classList.add('visible');
+  animActive = true;
+  drawFrame();
+  spawnWords();
+  setInterval(spawnStarParticle, 500);
+  if(ytId){
+    const tryPlay = setInterval(()=>{
+      if(player&&typeof player.playVideo==='function'){ player.playVideo(); musicBtn.textContent='⏸️'; musicOn=true; clearInterval(tryPlay); }
+    },300);
+    setTimeout(()=>clearInterval(tryPlay),8000);
+  }
+});
+</script>
+</body>
+</html>
